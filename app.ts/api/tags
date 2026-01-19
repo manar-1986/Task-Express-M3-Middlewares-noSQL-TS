@@ -1,0 +1,4 @@
+import tagRoutes from "./api/tags/tags.routes";
+
+// Add this with your other routes
+app.use("/tags", tagRoutes);
