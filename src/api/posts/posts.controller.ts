@@ -44,3 +44,15 @@ export const deletePost = async (req: Request, res: Response) => {
         res.status(500).json({ message: "Error deleting post" });
     }
 };
+
+export const getAllPosts = async (req: Request, res: Response) => {
+    try {
+        const posts = await Post.find()
+            .populate("author")
+            .populate("tags");
+
+        res.status(200).json(posts);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};

@@ -119,6 +119,9 @@ dist
 # FuseBox cache
 .fusebox/
 
+# Media uploads directory
+media/
+
 # DynamoDB Local files
 .dynamodb/
 
