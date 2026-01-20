@@ -1,5 +1,11 @@
-import Post from "../../models/Post";
 import { Request, Response } from "express";
+import Post from "../../models/Post";
+import Author from "../../models/Author";
+
+// Extend Request type to include file from multer
+interface MulterRequest extends Request {
+    file?: Express.Multer.File;
+}
 
 export const getPosts = async (req: Request, res: Response) => {
     try {
@@ -10,13 +16,44 @@ export const getPosts = async (req: Request, res: Response) => {
     }
 };
 
-export const createPost = async (req: Request, res: Response) => {
+export const createPost = async (req: MulterRequest, res: Response) => {
     try {
-        const { title, body } = req.body;
-        const post = await Post.create({ title, body });
-        res.json(post);
-    } catch (error) {
-        res.status(500).json({ message: "Error creating post" });
+        const { title, body, authorId } = req.body;
+
+        // Handle image upload if file was provided
+        if (req.file) {
+            // Store just the filename - files are accessible via /media/filename
+            // req.file.filename contains: "image-timestamp-random-originalname.ext"
+            req.body.image = `/media/${req.file.filename}`;  // Save the URL path
+        }
+
+        // Check if author exists
+        const author = await Author.findById(authorId);
+        if (!author) {
+            res.status(404).json({ error: "Author not found" });
+            return;
+        }
+
+        // Create the post with all fields including image
+        const post = await Post.create({
+            title,
+            body,
+            author: authorId,
+            image: req.body.image  // Will be undefined if no file uploaded
+        });
+
+        // Add post to author's posts array
+        await Author.findByIdAndUpdate(
+            authorId,
+            { $push: { posts: post._id } },
+            { new: true }
+        );
+
+        res.status(201).json(post);
+        return;
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+        return;
     }
 };
 
@@ -26,10 +63,10 @@ export const updatePost = async (req: Request, res: Response) => {
         const foundPost = await Post.findById(id);
         if (!foundPost) {
             res.status(404).json({ message: "Post not found" });
-        } else {
-            await foundPost.updateOne(req.body);
-            res.json({ message: "Post updated successfully" });
+            return;
         }
+        await foundPost.updateOne(req.body);
+        res.json({ message: "Post updated successfully" });
     } catch (error) {
         res.status(500).json({ message: "Error updating post" });
     }

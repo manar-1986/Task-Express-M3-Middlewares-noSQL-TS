@@ -2,8 +2,8 @@ import { model, Schema } from "mongoose";
 
 
 const tagschema = new Schema({
-    name: { type: Schema },
-    post: [{ type: Schema.Types.ObjectId, ref: "post" }]
+    name: { type: String },
+    post: [{ type: Schema.Types.ObjectId, ref: "Post" }]
 })
 
 const Tag = model("Tag", tagschema)
