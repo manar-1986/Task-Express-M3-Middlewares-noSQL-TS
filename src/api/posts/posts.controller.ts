@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import Post from "../../models/Post";
 import Author from "../../models/Author";
 
-// Extend Request type to include file from multer
 interface MulterRequest extends Request {
     file?: Express.Multer.File;
 }
@@ -16,30 +15,29 @@ export const getPosts = async (req: Request, res: Response) => {
     }
 };
 
-export const createPost = async (req: MulterRequest, res: Response) => {
+export const createPost = async (req: MulterRequest, res: Response): Promise<void> => {
     try {
         const { title, body, authorId } = req.body;
 
-        // Handle image upload if file was provided
         if (req.file) {
-            req.body.image = req.file.path;  // Save the file path
+            req.body.image = req.file.path;
         }
 
-        // Check if author exists
+
         const author = await Author.findById(authorId);
         if (!author) {
-            return res.status(404).json({ error: "Author not found" });
+            res.status(404).json({ error: "Author not found" });
+            return;
         }
 
-        // Create the post with all fields including image
-        const post = await Post.create({ 
-            title, 
-            body, 
+
+        const post = await Post.create({
+            title,
+            body,
             author: authorId,
-            image: req.body.image  // Will be undefined if no file uploaded
+            image: req.body.image
         });
 
-        // Add post to author's posts array
         await Author.findByIdAndUpdate(
             authorId,
             { $push: { posts: post._id } },

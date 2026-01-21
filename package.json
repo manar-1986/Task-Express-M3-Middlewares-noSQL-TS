@@ -24,7 +24,6 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {
-    "@types/express-validator": "^2.20.33",
     "@types/morgan": "^1.9.10"
   }
 }
