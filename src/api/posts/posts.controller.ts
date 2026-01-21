@@ -22,22 +22,19 @@ export const createPost = async (req: MulterRequest, res: Response) => {
 
         // Handle image upload if file was provided
         if (req.file) {
-            // Store just the filename - files are accessible via /media/filename
-            // req.file.filename contains: "image-timestamp-random-originalname.ext"
-            req.body.image = `/media/${req.file.filename}`;  // Save the URL path
+            req.body.image = req.file.path;  // Save the file path
         }
 
         // Check if author exists
         const author = await Author.findById(authorId);
         if (!author) {
-            res.status(404).json({ error: "Author not found" });
-            return;
+            return res.status(404).json({ error: "Author not found" });
         }
 
         // Create the post with all fields including image
-        const post = await Post.create({
-            title,
-            body,
+        const post = await Post.create({ 
+            title, 
+            body, 
             author: authorId,
             image: req.body.image  // Will be undefined if no file uploaded
         });
@@ -50,10 +47,8 @@ export const createPost = async (req: MulterRequest, res: Response) => {
         );
 
         res.status(201).json(post);
-        return;
     } catch (error: any) {
         res.status(500).json({ error: error.message });
-        return;
     }
 };
 
